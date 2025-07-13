@@ -22,23 +22,40 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault();
 
-    const nameExists = persons.some((person) => person.name === newName);
+    const existingPerson = persons.find((person) => person.name === newName);
 
-    if (nameExists) {
-      alert(`${newName} is already added to phonebook`);
-      return;
+    if (existingPerson) {
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one?`
+        )
+      ) {
+        const updatedPerson = { ...existingPerson, number: newNumber };
+
+        personService
+          .update(existingPerson.id, updatedPerson)
+          .then((returnedPerson) => {
+            setPersons(
+              persons.map((person) =>
+                person.id !== existingPerson.id ? person : returnedPerson
+              )
+            );
+            setNewName("");
+            setNewNumber("");
+          })
+          .catch((error) => {
+            alert('Server communication error');
+          });
+      }
+    } else {
+      const newPerson = { name: newName, number: newNumber };
+
+      personService.create(newPerson).then((returnedPerson) => {
+        setPersons(persons.concat(returnedPerson));
+        setNewName("");
+        setNewNumber("");
+      });
     }
-
-    const newPerson = {
-      name: newName,
-      number: newNumber,
-    };
-
-    personService.create(newPerson).then((returnedPerson) => {
-      setPersons(persons.concat(returnedPerson));
-      setNewName("");
-      setNewNumber("");
-    });
   };
 
   const personsToShow = persons.filter((person) =>
@@ -46,18 +63,18 @@ const App = () => {
   );
 
   const handleDelete = (id, name) => {
-  if (window.confirm(`Delete ${name} ?`)) {
-    personService
-      .remove(id)
-      .then(() => {
-        setPersons(persons.filter(person => person.id !== id));
-      })
-      .catch(error => {
-        alert(`The person '${name}' was already removed from server`);
-        setPersons(persons.filter(person => person.id !== id));
-      });
-  }
-};
+    if (window.confirm(`Delete ${name} ?`)) {
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch((error) => {
+          alert(`The person '${name}' was already removed from server`);
+          setPersons(persons.filter((person) => person.id !== id));
+        });
+    }
+  };
 
   return (
     <div>
