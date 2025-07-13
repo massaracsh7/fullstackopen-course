@@ -3,6 +3,7 @@ import Filter from "./Filter";
 import PersonForm from "./PersonForm";
 import Persons from "./Persons";
 import personService from "./services/persons";
+import Notification from "./Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -14,6 +15,8 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
+  const [notification, setNotification] = useState({ message: null, type: null });
+
 
   const handleNameChange = (event) => setNewName(event.target.value);
   const handleNumberChange = (event) => setNewNumber(event.target.value);
@@ -36,15 +39,24 @@ const App = () => {
           .update(existingPerson.id, updatedPerson)
           .then((returnedPerson) => {
             setPersons(
-              persons.map((person) =>
-                person.id !== existingPerson.id ? person : returnedPerson
+              persons.map((p) =>
+                p.id !== existingPerson.id ? p : returnedPerson
               )
             );
-            setNewName("");
-            setNewNumber("");
+            setNotification({ message: `Updated ${newName}`, type: "success" });
+            setTimeout(() => {
+              setNotification({ message: null, type: null });
+            }, 5000);
           })
           .catch((error) => {
-            alert('Server communication error');
+            setNotification({
+              message: `Information of ${newName} has already been removed from server`,
+              type: "error",
+            });
+            setTimeout(() => {
+              setNotification({ message: null, type: null });
+            }, 5000);
+            setPersons(persons.filter((p) => p.id !== existingPerson.id));
           });
       }
     } else {
@@ -52,6 +64,10 @@ const App = () => {
 
       personService.create(newPerson).then((returnedPerson) => {
         setPersons(persons.concat(returnedPerson));
+        setNotification({ message: `Added ${newName}`, type: "success" });
+        setTimeout(() => {
+          setNotification({ message: null, type: null });
+        }, 5000);
         setNewName("");
         setNewNumber("");
       });
@@ -70,8 +86,13 @@ const App = () => {
           setPersons(persons.filter((person) => person.id !== id));
         })
         .catch((error) => {
-          alert(`The person '${name}' was already removed from server`);
-          setPersons(persons.filter((person) => person.id !== id));
+          setNotification({
+            message: `Information of ${newName} has already been removed from server`,
+            type: "error",
+          });
+          setTimeout(() => {
+            setNotification({ message: null, type: null });
+          }, 5000);
         });
     }
   };
@@ -79,6 +100,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification.message} type={notification.type} />
 
       <Filter filter={filter} handleFilterChange={handleFilterChange} />
 
