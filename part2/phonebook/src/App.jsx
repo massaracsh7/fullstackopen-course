@@ -37,9 +37,11 @@ const App = () => {
       number: newNumber,
     };
 
-    setPersons([...persons, newPerson]);
-    setNewName("");
-    setNewNumber("");
+    axios.post("http://localhost:3001/persons", newPerson).then((response) => {
+      setPersons(persons.concat(response.data));
+      setNewName("");
+      setNewNumber("");
+    });
   };
 
   const personsToShow = persons.filter((person) =>
