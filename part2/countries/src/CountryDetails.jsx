@@ -1,5 +1,5 @@
 
-export const CountryDetails = ({ country }) => (
+ const CountryDetails = ({ country }) => (
   <div>
     <h2>{country.name.common}</h2>
     <div>Capital: {country.capital?.[0]}</div>
@@ -13,3 +13,5 @@ export const CountryDetails = ({ country }) => (
     <img src={country.flags.svg} alt="flag" width="150" />
   </div>
 )
+
+export default CountryDetails;
