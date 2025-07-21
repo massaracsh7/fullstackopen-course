@@ -1,45 +1,60 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import CountryDetails from "./CountryDetails";
+import { useState, useEffect } from 'react'
+import CountryDetails from './components/CountryDetails'
+import getCountries from './services/countries'
 
 function App() {
-  const [countries, setCountries] = useState([]);
-  const [query, setQuery] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [countries, setCountries] = useState([])
+  const [query, setQuery] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState(null)
 
   useEffect(() => {
-    axios
-      .get("https://studies.cs.helsinki.fi/restcountries/api/all")
-      .then((res) => setCountries(res.data));
-  }, []);
+    getCountries().then(setCountries)
+  }, [])
 
-  const filtered = countries.filter((c) =>
+  const filtered = countries.filter(c =>
     c.name.common.toLowerCase().includes(query.toLowerCase())
-  );
+  )
+
+  const handleShow = (country) => {
+    setSelectedCountry(country)
+  }
+
+  const showList = () => {
+    if (query === '') return null
+    if (filtered.length > 10) {
+      return <p>Too many matches, specify another filter</p>
+    }
+    if (filtered.length > 1) {
+      return (
+        <ul>
+          {filtered.map(c => (
+            <li key={c.cca3}>
+              {c.name.common}
+              <button onClick={() => handleShow(c)}>Show</button>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    if (filtered.length === 1) {
+      return <CountryDetails country={filtered[0]} />
+    }
+    return <p>No matches</p>
+  }
 
   return (
     <div>
       <div>
-        find countries:{" "}
-        <input value={query} onChange={(e) => setQuery(e.target.value)} />
+        find countries: <input value={query} onChange={e => {
+          setQuery(e.target.value)
+          setSelectedCountry(null)
+        }} />
       </div>
-
-      {filtered.length > 10 && <p>Too many matches, specify another filter</p>}
-
-      {filtered.length <= 10 && filtered.length > 1 && (
-        <ul>
-          {filtered.map((c) => (
-            <li key={c.cca3}>
-              {c.name.common}
-              <button onClick={() => setSelectedCountry(c)}>Show</button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {selectedCountry && <CountryDetails country={selectedCountry} />}
+      {selectedCountry
+        ? <CountryDetails country={selectedCountry} />
+        : showList()}
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
