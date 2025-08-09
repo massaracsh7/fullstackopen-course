@@ -15,6 +15,8 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, 'dist')));
+
 const PORT = 3001;
 
 let persons = [
