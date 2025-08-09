@@ -1,11 +1,6 @@
 const express = require("express");
 const morgan = require('morgan');
-const cors = require('cors');
 const app = express();
-
-app.use(cors({
-  origin: 'http://localhost:5173'
-}));
 
 morgan.token('post-data', (req) => {
   return req.method === 'POST' ? JSON.stringify(req.body) : ''
@@ -15,9 +10,9 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :p
 
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static('dist'))
 
-const PORT = 3001;
+const PORT = process.env.PORT ||3001;
 
 let persons = [
   { id: "1", name: "Arto Hellas", number: "040-123456" },
