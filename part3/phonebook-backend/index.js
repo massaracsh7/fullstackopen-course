@@ -49,6 +49,16 @@ app.post("/api/persons", (req, res) => {
   if (!body.name || !body.number) {
     res.status(400).json({ error: "Name and number are required" });
   }
+
+  const nameExists = persons.some(
+    (p) => p.name.toLowerCase() === body.name.toLowerCase()
+  );
+
+  if (nameExists) {
+    return res.status(400).json({
+      error: "name must be unique",
+    });
+  }
   const newPerson = {
     id: generateId(),
     name: body.name,
