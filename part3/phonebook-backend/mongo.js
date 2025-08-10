@@ -5,7 +5,7 @@ if (process.argv.length < 3) {
   process.exit(1);
 }
 
-const password = process.argv[2];
+const password = encodeURIComponent(process.argv[2]);
 const name = process.argv[3];
 const number = process.argv[4];
 
@@ -27,11 +27,15 @@ async function main() {
     if (!name && !number) {
       const people = await Person.find({});
       console.log('phonebook:');
-      people.forEach(p => console.log(`${p.name} ${p.number}`));
-    } else {
+      people.forEach(person => {
+        console.log(`${person.name} ${person.number}`);
+      });
+    } else if (name && number) {
       const person = new Person({ name, number });
       await person.save();
       console.log(`added ${name} number ${number} to phonebook`);
+    } else {
+      console.log('Please provide both name and number to add a new entry.');
     }
   } catch (error) {
     console.error('Error connecting to MongoDB:', error.message);
