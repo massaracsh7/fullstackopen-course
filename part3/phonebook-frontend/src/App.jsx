@@ -15,8 +15,10 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
-  const [notification, setNotification] = useState({ message: null, type: null });
-
+  const [notification, setNotification] = useState({
+    message: null,
+    type: null,
+  });
 
   const handleNameChange = (event) => setNewName(event.target.value);
   const handleNumberChange = (event) => setNewNumber(event.target.value);
@@ -62,15 +64,26 @@ const App = () => {
     } else {
       const newPerson = { name: newName, number: newNumber };
 
-      personService.create(newPerson).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson));
-        setNotification({ message: `Added ${newName}`, type: "success" });
-        setTimeout(() => {
-          setNotification({ message: null, type: null });
-        }, 5000);
-        setNewName("");
-        setNewNumber("");
-      });
+      personService
+        .create(newPerson)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNotification({ message: `Added ${newName}`, type: "success" });
+          setTimeout(() => {
+            setNotification({ message: null, type: null });
+          }, 5000);
+          setNewName("");
+          setNewNumber("");
+        })
+        .catch((error) => {
+          setNotification({
+            message: error.response?.data?.error || "Error adding person",
+            type: "error",
+          });
+          setTimeout(() => {
+            setNotification({ message: null, type: null });
+          }, 5000);
+        });
     }
   };
 
