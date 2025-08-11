@@ -9,7 +9,11 @@ const App = () => {
   const [persons, setPersons] = useState([]);
   useEffect(() => {
     personService.getAll().then((initialPersons) => {
-      setPersons(initialPersons);
+      const personsWithId = initialPersons.map(person => ({
+        ...person,
+        id: person._id,
+      }));
+      setPersons(personsWithId);
     });
   }, []);
   const [newName, setNewName] = useState("");
