@@ -23,38 +23,47 @@ mongoose
 const personSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    minLength: [3, "Name must be at least 3 characters long"], // 3.19
+    required: [true, "Name is required"],
     unique: true,
   },
   number: {
     type: String,
-    required: true,
+    required: [true, "Phone number is required"],
+    validate: {
+      validator: function (v) {
+        // 3.20: длина ≥ 8, формат XX-XXXXXXX или XXX-XXXXXXXX
+        return /^\d{2,3}-\d+$/.test(v) && v.length >= 8;
+      },
+      message: (props) => `${props.value} is not a valid phone number!`,
+    },
   },
 });
+
 const Person = mongoose.model("Person", personSchema);
 
 app.get("/api/persons", (req, res, next) => {
   Person.find({})
-    .then(persons => res.json(persons))
-    .catch(error => next(error));
+    .then((persons) => res.json(persons))
+    .catch((error) => next(error));
 });
 
 app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
-    .then(person => {
+    .then((person) => {
       if (person) res.json(person);
       else res.status(404).json({ error: "Person not found" });
     })
-    .catch(error => next(error));
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
-    .then(result => {
+    .then((result) => {
       if (result) res.status(204).end();
       else res.status(404).json({ error: "Person not found" });
     })
-    .catch(error => next(error));
+    .catch((error) => next(error));
 });
 
 app.post("/api/persons", (req, res, next) => {
@@ -65,18 +74,16 @@ app.post("/api/persons", (req, res, next) => {
   }
 
   Person.findOne({ name })
-    .then(existingPerson => {
+    .then((existingPerson) => {
       if (existingPerson) {
         existingPerson.number = number;
-        return existingPerson.save()
-          .then(updatedPerson => res.json(updatedPerson));
+        return existingPerson.save().then((updatedPerson) => res.json(updatedPerson));
       } else {
         const person = new Person({ name, number });
-        return person.save()
-          .then(savedPerson => res.status(201).json(savedPerson));
+        return person.save().then((savedPerson) => res.status(201).json(savedPerson));
       }
     })
-    .catch(error => next(error));
+    .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
@@ -87,23 +94,23 @@ app.put("/api/persons/:id", (req, res, next) => {
     { name, number },
     { new: true, runValidators: true, context: "query" }
   )
-    .then(updatedPerson => {
+    .then((updatedPerson) => {
       if (updatedPerson) {
         res.json(updatedPerson);
       } else {
         res.status(404).json({ error: "Person not found" });
       }
     })
-    .catch(error => next(error));
+    .catch((error) => next(error));
 });
 
 app.get("/info", (req, res, next) => {
   Person.countDocuments({})
-    .then(count => {
+    .then((count) => {
       const time = new Date();
       res.send(`<p>Phonebook has info for ${count} people</p><p>${time}</p>`);
     })
-    .catch(error => next(error));
+    .catch((error) => next(error));
 });
 
 const unknownEndpoint = (req, res) => {
