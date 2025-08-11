@@ -23,7 +23,7 @@ mongoose
 const personSchema = new mongoose.Schema({
   name: {
     type: String,
-    minLength: [3, "Name must be at least 3 characters long"], // 3.19
+    minLength: [3, "Name must be at least 3 characters long"],
     required: [true, "Name is required"],
     unique: true,
   },
@@ -32,7 +32,6 @@ const personSchema = new mongoose.Schema({
     required: [true, "Phone number is required"],
     validate: {
       validator: function (v) {
-        // 3.20: длина ≥ 8, формат XX-XXXXXXX или XXX-XXXXXXXX
         return /^\d{2,3}-\d+$/.test(v) && v.length >= 8;
       },
       message: (props) => `${props.value} is not a valid phone number!`,
