@@ -82,6 +82,12 @@ describe('when there are some blogs initially', () => {
     const response = await api.get('/api/blogs')
     assert.strictEqual(response.body.length, 6)
   })
+  test('unique identifier of the blog posts is named id', async () => {
+  const response = await api.get('/api/blogs')
+  const blog = response.body[0]
+  assert(blog.id)
+  assert(!blog._id)
+})
 })
 
 after(async () => {
