@@ -1,23 +1,23 @@
-const assert = require('node:assert')
-const { test, describe, before, beforeEach, after } = require('node:test')
-const mongoose = require('mongoose')
-const supertest = require('supertest')
-const { MongoMemoryServer } = require('mongodb-memory-server')
-const app = require('../app')
-const Blog = require('../models/blog')
+const assert = require("node:assert");
+const { test, describe, before, beforeEach, after } = require("node:test");
+const mongoose = require("mongoose");
+const supertest = require("supertest");
+const { MongoMemoryServer } = require("mongodb-memory-server");
+const app = require("../app");
+const Blog = require("../models/blog");
 
-const api = supertest(app)
+const api = supertest(app);
 
-let mongoServer
+let mongoServer;
 
 before(async () => {
-  mongoServer = await MongoMemoryServer.create()
-  const uri = mongoServer.getUri()
-  await mongoose.connect(uri)
-})
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri);
+});
 
 beforeEach(async () => {
-  await Blog.deleteMany({})
+  await Blog.deleteMany({});
   await Blog.insertMany([
     {
       _id: "5a422a851b54a676234d17f7",
@@ -25,7 +25,7 @@ beforeEach(async () => {
       author: "Michael Chan",
       url: "https://reactpatterns.com/",
       likes: 7,
-      __v: 0
+      __v: 0,
     },
     {
       _id: "5a422aa71b54a676234d17f8",
@@ -33,7 +33,7 @@ beforeEach(async () => {
       author: "Edsger W. Dijkstra",
       url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
       likes: 5,
-      __v: 0
+      __v: 0,
     },
     {
       _id: "5a422b3a1b54a676234d17f9",
@@ -41,7 +41,7 @@ beforeEach(async () => {
       author: "Edsger W. Dijkstra",
       url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
       likes: 12,
-      __v: 0
+      __v: 0,
     },
     {
       _id: "5a422b891b54a676234d17fa",
@@ -49,7 +49,7 @@ beforeEach(async () => {
       author: "Robert C. Martin",
       url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
       likes: 10,
-      __v: 0
+      __v: 0,
     },
     {
       _id: "5a422ba71b54a676234d17fb",
@@ -57,7 +57,7 @@ beforeEach(async () => {
       author: "Robert C. Martin",
       url: "http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html",
       likes: 0,
-      __v: 0
+      __v: 0,
     },
     {
       _id: "5a422bc61b54a676234d17fc",
@@ -65,33 +65,55 @@ beforeEach(async () => {
       author: "Robert C. Martin",
       url: "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",
       likes: 2,
-      __v: 0
-    }
-  ])
-})
+      __v: 0,
+    },
+  ]);
+});
 
-describe('when there are some blogs initially', () => {
-  test('blogs are returned as json', async () => {
+describe("when there are some blogs initially", () => {
+  test("blogs are returned as json", async () => {
     await api
-      .get('/api/blogs')
+      .get("/api/blogs")
       .expect(200)
-      .expect('Content-Type', /application\/json/)
-  })
+      .expect("Content-Type", /application\/json/);
+  });
 
-  test('all blogs are returned', async () => {
-    const response = await api.get('/api/blogs')
-    assert.strictEqual(response.body.length, 6)
-  })
-  test('unique identifier of the blog posts is named id', async () => {
-  const response = await api.get('/api/blogs')
-  const blog = response.body[0]
-  assert(blog.id)
-  assert(!blog._id)
-})
-})
+  test("all blogs are returned", async () => {
+    const response = await api.get("/api/blogs");
+    assert.strictEqual(response.body.length, 6);
+  });
+  test("unique identifier of the blog posts is named id", async () => {
+    const response = await api.get("/api/blogs");
+    const blog = response.body[0];
+    assert(blog.id);
+    assert(!blog._id);
+  });
+  test("a valid blog can be added", async () => {
+    const blogsAtStart = await Blog.find({});
+
+    const newBlog = {
+      title: "Async/Await is awesome",
+      author: "Your Name",
+      url: "https://example.com/async-await",
+      likes: 8,
+    };
+
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .expect(201)
+      .expect("Content-Type", /application\/json/);
+
+    const blogsAtEnd = await Blog.find({});
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1);
+
+    const titles = blogsAtEnd.map((b) => b.title);
+    assert(titles.includes("Async/Await is awesome"));
+  });
+});
 
 after(async () => {
-  await mongoose.connection.dropDatabase()
-  await mongoose.connection.close()
-  await mongoServer.stop()
-})
+  await mongoose.connection.dropDatabase();
+  await mongoose.connection.close();
+  await mongoServer.stop();
+});
