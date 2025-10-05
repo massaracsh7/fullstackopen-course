@@ -110,6 +110,21 @@ describe("when there are some blogs initially", () => {
     const titles = blogsAtEnd.map((b) => b.title);
     assert(titles.includes("Async/Await is awesome"));
   });
+  test('if likes property is missing, it defaults to 0', async () => {
+  const newBlog = {
+    title: 'Without likes',
+    author: 'User_test',
+    url: 'https://example.com/no-likes'
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  assert.strictEqual(response.body.likes, 0)
+})
 });
 
 after(async () => {
