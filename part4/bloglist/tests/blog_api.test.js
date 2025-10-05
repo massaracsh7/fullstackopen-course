@@ -92,9 +92,9 @@ describe("when there are some blogs initially", () => {
     const blogsAtStart = await Blog.find({});
 
     const newBlog = {
-      title: "Async/Await is awesome",
-      author: "Your Name",
-      url: "https://example.com/async-await",
+      title: "Testing blog",
+      author: "User_test",
+      url: "https://testblog.com/testing-blog",
       likes: 8,
     };
 
@@ -108,23 +108,42 @@ describe("when there are some blogs initially", () => {
     assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1);
 
     const titles = blogsAtEnd.map((b) => b.title);
-    assert(titles.includes("Async/Await is awesome"));
+    assert(titles.includes("Testing blog"));
   });
-  test('if likes property is missing, it defaults to 0', async () => {
-  const newBlog = {
-    title: 'Without likes',
-    author: 'User_test',
-    url: 'https://example.com/no-likes'
-  }
+  test("if likes property is missing, it defaults to 0", async () => {
+    const newBlog = {
+      title: "Without likes",
+      author: "User_test",
+      url: "https://example.com/no-likes",
+    };
 
-  const response = await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(201)
-    .expect('Content-Type', /application\/json/)
+    const response = await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .expect(201)
+      .expect("Content-Type", /application\/json/);
 
-  assert.strictEqual(response.body.likes, 0)
-})
+    assert.strictEqual(response.body.likes, 0);
+  });
+  test("blog without title is not added", async () => {
+    const newBlog = {
+      author: "User_test",
+      url: "https://testblog.com/no-title",
+      likes: 3,
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(400);
+  });
+
+  test("blog without url is not added", async () => {
+    const newBlog = {
+      title: "No URL",
+      author: "User_test",
+      likes: 3,
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(400);
+  });
 });
 
 after(async () => {
