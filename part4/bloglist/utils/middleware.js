@@ -2,9 +2,11 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 
 const tokenExtractor = (req, res, next) => {
-  const auth = req.get('authorization')
-  if (auth && auth.toLowerCase().startsWith('bearer ')) {
-    req.token = auth.substring(7)
+  const authorization = req.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    req.token = authorization.replace('Bearer ', '')
+  } else {
+    req.token = null
   }
   next()
 }

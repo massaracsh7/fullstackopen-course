@@ -1,7 +1,5 @@
 const blogsRouter = require("express").Router()
 const Blog = require("../models/blog")
-const User = require("../models/user")
-const jwt = require("jsonwebtoken")
 const middleware = require("../utils/middleware")
 
 blogsRouter.get("/", async (req, res) => {
@@ -9,21 +7,35 @@ blogsRouter.get("/", async (req, res) => {
   res.json(blogs)
 })
 
-blogsRouter.post("/", middleware.userExtractor, async (req, res) => {
-  const user = req.user
-  const body = req.body
+blogsRouter.post('/', middleware.userExtractor, async (req, res, next) => {
+  try {
+    const user = req.user
+    const { title, author, url, likes } = req.body
 
-  const blog = new Blog({
-    ...body,
-    user: user._id,
-  })
+    if (!title || !url) {
+      return res.status(400).json({ error: 'title and url are required' })
+    }
 
-  const savedBlog = await blog.save()
-  user.blogs = user.blogs.concat(savedBlog._id)
-  await user.save()
+    const blog = new Blog({
+      title,
+      author,
+      url,
+      likes: likes || 0,
+      user: user._id,
+    })
 
-  res.status(201).json(savedBlog)
+    const savedBlog = await blog.save()
+
+    user.blogs = user.blogs.concat(savedBlog._id)
+    await user.save()
+
+    res.status(201).json(savedBlog)
+  } catch (error) {
+    console.error('Error in POST /api/blogs:', error.message)
+    next(error)
+  }
 })
+
 
 blogsRouter.delete("/:id", middleware.userExtractor, async (req, res) => {
   const user = req.user
@@ -40,11 +52,9 @@ blogsRouter.delete("/:id", middleware.userExtractor, async (req, res) => {
 
 blogsRouter.put("/:id", async (req, res) => {
   const updatedBlog = req.body
-
   const blog = await Blog.findByIdAndUpdate(req.params.id, updatedBlog, {
     new: true,
   })
-
   res.json(blog)
 })
 
