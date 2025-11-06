@@ -52,11 +52,16 @@ const mostLikes = (blogs) => {
 
   return { author: topAuthor, likes: maxLikes }
 }
+const getTokenFrom = request => {
+  const auth = request.get('authorization')
+  return auth && auth.startsWith('Bearer ') ? auth.replace('Bearer ', '') : null
+}
 
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
-  mostLikes
+  mostLikes,
+  getTokenFrom
 }

@@ -1,6 +1,9 @@
 const blogsRouter = require("express").Router();
+const jwt = require("jsonwebtoken");
 const Blog = require("../models/blog");
 const User = require("../models/user");
+
+const { getTokenFrom } = require("../utils/list_helper");
 
 blogsRouter.get("/", async (request, response) => {
   const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
@@ -10,12 +13,26 @@ blogsRouter.get("/", async (request, response) => {
 blogsRouter.post("/", async (request, response) => {
   try {
     const body = request.body;
+    const token = getTokenFrom(request);
 
-    const users = await User.find({});
-    const user = users[0];
+    if (!token) {
+      return response.status(401).json({ error: "token missing" });
+    }
 
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.SECRET);
+    } catch (err) {
+      return response.status(401).json({ error: "token invalid" });
+    }
+
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: "token invalid" });
+    }
+
+    const user = await User.findById(decodedToken.id);
     if (!user) {
-      return response.status(400).json({ error: "no users in database" });
+      return response.status(401).json({ error: "user not found" });
     }
 
     const blog = new Blog({
@@ -30,10 +47,8 @@ blogsRouter.post("/", async (request, response) => {
 
     response.status(201).json(savedBlog);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      return response.status(400).json({ error: error.message });
-    }
-    response.status(500).json({ error: "Error" });
+    console.error(error);
+    response.status(500).json({ error: "internal server error" });
   }
 });
 
