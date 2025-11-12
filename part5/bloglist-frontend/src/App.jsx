@@ -9,43 +9,82 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
+  const [newTitle, setNewTitle] = useState('')
+  const [newAuthor, setNewAuthor] = useState('')
+  const [newUrl, setNewUrl] = useState('')
+
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs(blogs)
     )
   }, [])
 
-const handleLogin = async (event) => {
-  event.preventDefault()
-  try {
-    const user = await loginService.login({ username, password })
+  useEffect(() => {
+    const loggedUser = window.localStorage.getItem('user')
+    if (loggedUser) {
+      const user = JSON.parse(loggedUser)
+      setUser(user)
+      blogService.setToken(user.token)
+    }
+  }, [])
 
-    window.localStorage.setItem(
-      'user',
-      JSON.stringify(user)
-    )
+  const handleLogin = async (event) => {
+    event.preventDefault()
+    try {
+      const user = await loginService.login({ username, password })
 
-    setUser(user) 
-    setUsername('')
-    setPassword('')
-  } catch (error) {
-    console.error('wrong credentials')
+      window.localStorage.setItem('user', JSON.stringify(user))
+      setUser(user)
+      blogService.setToken(user.token)
+      setUsername('')
+      setPassword('')
+    } catch (error) {
+      console.error('wrong credentials')
+    }
   }
-}
 
-useEffect(() => {
-  const loggedUser = window.localStorage.getItem('user')
-  if (loggedUser) {
-    const user = JSON.parse(loggedUser)
-    setUser(user)
-    blogService.setToken(user.token)
+  const handleLogout = () => {
+    window.localStorage.removeItem('user')
+    setUser(null)
   }
-}, [])
 
-const handleLogout = () => {
-  window.localStorage.removeItem('loggedBlogAppUser') 
-  setUser(null) 
-}
+  const addBlog = async (event) => {
+    event.preventDefault()
+    try {
+      const blogObject = {
+        title: newTitle,
+        author: newAuthor,
+        url: newUrl
+      }
+
+      const returnedBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(returnedBlog))
+
+      setNewTitle('')
+      setNewAuthor('')
+      setNewUrl('')
+    } catch (error) {
+      console.error('Error creating blog', error)
+    }
+  }
+
+  const blogForm = () => (
+    <div>
+      <h2>Create new blog</h2>
+      <form onSubmit={addBlog}>
+        <div>
+          title: <input value={newTitle} onChange={({ target }) => setNewTitle(target.value)} />
+        </div>
+        <div>
+          author: <input value={newAuthor} onChange={({ target }) => setNewAuthor(target.value)} />
+        </div>
+        <div>
+          url: <input value={newUrl} onChange={({ target }) => setNewUrl(target.value)} />
+        </div>
+        <button type="submit">create</button>
+      </form>
+    </div>
+  )
 
   if (user === null) {
     return (
@@ -77,10 +116,15 @@ const handleLogout = () => {
   return (
     <div>
       <h2>blogs</h2>
-      <p>{user.name} logged in</p><button onClick={handleLogout}>logout</button>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+      <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
+
+      {blogForm()}
+
+      <ul>
+        {blogs.map(blog =>
+          <Blog key={blog.id} blog={blog} />
+        )}
+      </ul>
     </div>
   )
 }
