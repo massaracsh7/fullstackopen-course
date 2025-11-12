@@ -15,17 +15,37 @@ const App = () => {
     )
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
-    try {
-      const user = await loginService.login({ username, password })
-      setUser(user)
-      setUsername('')
-      setPassword('')
-    } catch (error) {
-      console.error('wrong credentials')
-    }
+const handleLogin = async (event) => {
+  event.preventDefault()
+  try {
+    const user = await loginService.login({ username, password })
+
+    window.localStorage.setItem(
+      'user',
+      JSON.stringify(user)
+    )
+
+    setUser(user) 
+    setUsername('')
+    setPassword('')
+  } catch (error) {
+    console.error('wrong credentials')
   }
+}
+
+useEffect(() => {
+  const loggedUser = window.localStorage.getItem('user')
+  if (loggedUser) {
+    const user = JSON.parse(loggedUser)
+    setUser(user)
+    blogService.setToken(user.token)
+  }
+}, [])
+
+const handleLogout = () => {
+  window.localStorage.removeItem('loggedBlogAppUser') 
+  setUser(null) 
+}
 
   if (user === null) {
     return (
@@ -57,8 +77,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
-      <p>{user.name} logged in</p>
-
+      <p>{user.name} logged in</p><button onClick={handleLogout}>logout</button>
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
       )}
