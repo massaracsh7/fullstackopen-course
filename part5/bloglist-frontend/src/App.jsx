@@ -91,6 +91,20 @@ const App = () => {
     }
   };
 
+  const handleRemove = async (blog) => {
+  const confirm = window.confirm(`Remove blog "${blog.title}" by ${blog.author}?`)
+  if (!confirm) return
+
+  try {
+    await blogService.remove(blog.id)
+    setBlogs(blogs.filter(b => b.id !== blog.id))
+    showNotification(`Blog "${blog.title}" removed`)
+  } catch (error) {
+    showNotification('Error removing blog')
+    console.error('Error removing blog', error)
+  }
+}
+
   if (user === null) {
     return (
       <div>
