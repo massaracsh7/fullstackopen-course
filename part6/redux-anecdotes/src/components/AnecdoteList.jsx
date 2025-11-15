@@ -14,7 +14,6 @@ const Anecdote = ({ anecdote, handleVote }) => (
 const AnecdoteList = () => {
   const dispatch = useDispatch()
   
-  // Берем все анекдоты и сортируем по убыванию голосов
   const anecdotes = useSelector(state => 
     [...state].sort((a, b) => b.votes - a.votes)
   )
