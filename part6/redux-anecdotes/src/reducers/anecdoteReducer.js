@@ -1,6 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit'
-import anecdoteService from '../services/anecdotes'
-
+import { createSlice } from "@reduxjs/toolkit";
+import anecdoteService from "../services/anecdotes";
 
 // const getId = () => Math.floor(Math.random() * 100000)
 
@@ -13,35 +12,42 @@ import anecdoteService from '../services/anecdotes'
 // const initialState = anecdotesAtStart.map(asObject)
 
 const anecdoteSlice = createSlice({
-  name: 'anecdotes',
+  name: "anecdotes",
   initialState: [],
   reducers: {
-        setAnecdotes(state, action) {
-      return action.payload
+    setAnecdotes(state, action) {
+      return action.payload;
     },
-    createAnecdote: (state, action) => {
-      state.push({
-        content: action.payload,
-        id: getId(),
-        votes: 0
-      })
-    },
+    // createAnecdote: (state, action) => {
+    //   state.push({
+    //     content: action.payload,
+    //     id: getId(),
+    //     votes: 0
+    //   })
+    // },
     voteAnecdote: (state, action) => {
-      const id = action.payload
-      const anecdote = state.find(a => a.id === id)
+      const id = action.payload;
+      const anecdote = state.find((a) => a.id === id);
       if (anecdote) {
-        anecdote.votes += 1
+        anecdote.votes += 1;
       }
-    }
-  }
-})
+    },
+  },
+});
 
 export const initializeAnecdotes = () => {
   return async (dispatch) => {
-    const anecdotes = await anecdoteService.getAll()
-    dispatch(setAnecdotes(anecdotes))
-  }
-}
+    const anecdotes = await anecdoteService.getAll();
+    dispatch(setAnecdotes(anecdotes));
+  };
+};
 
-export const { createAnecdote, voteAnecdote, setAnecdotes  } = anecdoteSlice.actions
-export default anecdoteSlice.reducer
+export const createAnecdote = (content) => {
+  return async (dispatch) => {
+    const newAnecdote = await anecdoteService.createNew(content);
+    dispatch(appendAnecdote(newAnecdote));
+  };
+};
+
+export const { voteAnecdote, setAnecdotes } = anecdoteSlice.actions;
+export default anecdoteSlice.reducer;
