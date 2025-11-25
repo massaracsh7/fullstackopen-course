@@ -1,13 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createAnecdote } from '../services/anecdotes'
+import { useNotificationValue } from '../NotificationContext'
 
 const AnecdoteForm = () => {
   const queryClient = useQueryClient()
+  const { dispatch } = useNotificationValue()
 
-  const newAnecdoteMutation = useMutation(createAnecdote, {
+  const newAnecdoteMutation = useMutation({
+    mutationFn: createAnecdote,
     onSuccess: (newAnecdote) => {
-      const anecdotes = queryClient.getQueryData(['anecdotes'])
+      const anecdotes = queryClient.getQueryData(['anecdotes']) || []
       queryClient.setQueryData(['anecdotes'], anecdotes.concat(newAnecdote))
+      dispatch({ type: 'SHOW', payload: `Anecdote added: "${newAnecdote.content}"` })
+      setTimeout(() => dispatch({ type: 'HIDE' }), 5000)
+    },
+    onError: (error) => {
+      dispatch({ type: 'SHOW', payload: `Error: ${error.message}` })
+      setTimeout(() => dispatch({ type: 'HIDE' }), 5000)
     }
   })
 
@@ -15,7 +24,8 @@ const AnecdoteForm = () => {
     event.preventDefault()
     const content = event.target.anecdote.value
     if (content.length < 5) {
-      alert('Anecdote must be at least 5 characters long')
+      dispatch({ type: 'SHOW', payload: 'Error: anecdote must be at least 5 characters long' })
+      setTimeout(() => dispatch({ type: 'HIDE' }), 5000)
       return
     }
     event.target.anecdote.value = ''
