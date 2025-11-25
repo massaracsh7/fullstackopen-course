@@ -21,18 +21,18 @@ const AnecdoteList = () => {
     .filter(a => a.content.toLowerCase().includes(filter.toLowerCase()))
     .sort((a, b) => b.votes - a.votes)
 
-  const handleVote = (id, content) => {
-    dispatch(voteAnecdote(id))
-    dispatch(showNotification(`You voted for "${content}"`, 5))
+  const handleVote = (anecdote) => {
+    dispatch(voteAnecdote(anecdote))
+    dispatch(showNotification(`You voted for "${anecdote.content}"`, 5))
   }
 
   return (
     <div>
       {filtered.map(a => (
-        <Anecdote 
-          key={a.id} 
-          anecdote={a} 
-          handleVote={() => handleVote(a.id, a.content)}
+        <Anecdote
+          key={a.id}
+          anecdote={a}
+          handleVote={() => handleVote(a)}
         />
       ))}
     </div>
