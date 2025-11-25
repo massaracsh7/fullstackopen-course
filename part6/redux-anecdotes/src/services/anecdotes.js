@@ -1,29 +1,27 @@
 const baseUrl = 'http://localhost:3001/anecdotes'
 
-const getAll = async () => {
-  const response = await fetch(baseUrl)
-  if (!response.ok) throw new Error('Failed to fetch anecdotes')
-  return await response.json()
+export const getAnecdotes = async () => {
+  const res = await fetch(baseUrl)
+  if (!res.ok) throw new Error('Anecdote service not available')
+  return res.json()
 }
 
-const createNew = async (content) => {
-  const newAnecdote = { content, votes: 0 }
-  const response = await fetch(baseUrl, {
+export const createAnecdote = async (newAnecdote) => {
+  const res = await fetch(baseUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(newAnecdote)
   })
-  if (!response.ok) throw new Error('Failed to create anecdote')
-  return await response.json()
+  if (!res.ok) throw new Error('Failed to create anecdote')
+  return res.json()
 }
 
-const update = async (anecdote) => {
-  const response = await fetch(`${baseUrl}/${anecdote.id}`, {
+export const updateAnecdote = async (updatedAnecdote) => {
+  const res = await fetch(`${baseUrl}/${updatedAnecdote.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(anecdote)
+    body: JSON.stringify(updatedAnecdote)
   })
-  return await response.json()
+  if (!res.ok) throw new Error('Failed to update anecdote')
+  return res.json()
 }
-
-export default { getAll, createNew, update }

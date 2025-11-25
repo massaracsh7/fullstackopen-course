@@ -1,39 +1,41 @@
-import { useDispatch, useSelector } from 'react-redux'
-import { voteAnecdote } from '../reducers/anecdoteReducer'
-import { showNotification } from '../reducers/notificationSlice'
-
-const Anecdote = ({ anecdote, handleVote }) => (
-  <div>
-    <div>{anecdote.content}</div>
-    <div>
-      votes {anecdote.votes}
-      <button onClick={handleVote}>vote</button>
-    </div>
-  </div>
-)
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getAnecdotes, updateAnecdote } from '../services/anecdotes'
 
 const AnecdoteList = () => {
-  const dispatch = useDispatch()
-  const filter = useSelector(state => state.filter)
-  const anecdotes = useSelector(state => state.anecdotes)
+  const queryClient = useQueryClient()
 
-  const filtered = anecdotes
-    .filter(a => a.content.toLowerCase().includes(filter.toLowerCase()))
-    .sort((a, b) => b.votes - a.votes)
+  const { data: anecdotes, isLoading, isError } = useQuery({
+    queryKey: ['anecdotes'],
+    queryFn: getAnecdotes,
+    retry: false
+  })
+
+  const updateMutation = useMutation(updateAnecdote, {
+    onSuccess: (updatedAnecdote) => {
+      const notes = queryClient.getQueryData(['anecdotes'])
+      queryClient.setQueryData(
+        ['anecdotes'],
+        notes.map(a => a.id === updatedAnecdote.id ? updatedAnecdote : a)
+      )
+    }
+  })
 
   const handleVote = (anecdote) => {
-    dispatch(voteAnecdote(anecdote))
-    dispatch(showNotification(`You voted for "${anecdote.content}"`, 5))
+    updateMutation.mutate({ ...anecdote, votes: anecdote.votes + 1 })
   }
+
+  if (isLoading) return <div>Loading anecdotes...</div>
+  if (isError) return <div>Anecdote service not available</div>
 
   return (
     <div>
-      {filtered.map(a => (
-        <Anecdote
-          key={a.id}
-          anecdote={a}
-          handleVote={() => handleVote(a)}
-        />
+      {anecdotes.map(a => (
+        <div key={a.id}>
+          <div>
+            {a.content} <strong>votes: {a.votes}</strong>
+          </div>
+          <button onClick={() => handleVote(a)}>vote</button>
+        </div>
       ))}
     </div>
   )
