@@ -1,133 +1,116 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Link,
   useParams,
-  useNavigate
-} from 'react-router-dom'
+  useNavigate,
+} from "react-router-dom";
+import CreateNew from "./CreateNew";
+import CountryInfo from "./CountryInfo";
+import { useResource } from "./hooks/useResource";
 
 const Menu = () => {
-  const padding = { paddingRight: 5 }
+  const padding = { paddingRight: 5 };
   return (
     <div>
-      <Link to="/" style={padding}>anecdotes</Link>
-      <Link to="/create" style={padding}>create new</Link>
-      <Link to="/about" style={padding}>about</Link>
+      <Link to="/" style={padding}>
+        anecdotes
+      </Link>
+      <Link to="/create" style={padding}>
+        create new
+      </Link>
+      <Link to="/about" style={padding}>
+        about
+      </Link>
     </div>
-  )
-}
+  );
+};
 
 const AnecdoteList = ({ anecdotes }) => (
   <div>
     <h2>Anecdotes</h2>
     <ul>
-      {anecdotes.map(a =>
+      {anecdotes.map((a) => (
         <li key={a.id}>
           <Link to={`/anecdotes/${a.id}`}>{a.content}</Link>
         </li>
-      )}
+      ))}
     </ul>
   </div>
-)
+);
 
 const Anecdote = ({ anecdotes }) => {
-  const id = Number(useParams().id)
-  const anecdote = anecdotes.find(a => a.id === id)
+  const id = Number(useParams().id);
+  const anecdote = anecdotes.find((a) => a.id === id);
 
   return (
     <div>
       <h2>{anecdote.content}</h2>
       <div>author: {anecdote.author}</div>
       <div>votes: {anecdote.votes}</div>
-      <div>more info: <a href={anecdote.info}>{anecdote.info}</a></div>
+      <div>
+        more info: <a href={anecdote.info}>{anecdote.info}</a>
+      </div>
     </div>
-  )
-}
+  );
+};
 
 const About = () => (
   <div>
     <h2>About anecdote app</h2>
     <p>According to Wikipedia:</p>
-    <em>An anecdote is a brief, revealing account of an individual person or an incident.</em>
+    <em>
+      An anecdote is a brief, revealing account of an individual person or an
+      incident.
+    </em>
     <p>Software engineering is full of excellent anecdotes.</p>
   </div>
-)
+);
 
-const Footer = () => (
-  <div>
-    Anecdote app for Full Stack Open.
-  </div>
-)
-
-const CreateNew = ({ addNew }) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
-
-  const navigate = useNavigate()
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    addNew({
-      content,
-      author,
-      info,
-      votes: 0
-    })
-    navigate('/')
-  }
-
-  return (
-    <div>
-      <h2>create a new anecdote</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          content
-          <input value={content} onChange={e => setContent(e.target.value)} />
-        </div>
-        <div>
-          author
-          <input value={author} onChange={e => setAuthor(e.target.value)} />
-        </div>
-        <div>
-          url for more info
-          <input value={info} onChange={e => setInfo(e.target.value)} />
-        </div>
-        <button>create</button>
-      </form>
-    </div>
-  )
-}
+const Footer = () => <div>Anecdote app for Full Stack Open.</div>;
 
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
-      content: 'If it hurts, do it more often',
-      author: 'Jez Humble',
-      info: 'https://martinfowler.com/bliki/FrequencyReducesDifficulty.html',
+      content: "If it hurts, do it more often",
+      author: "Jez Humble",
+      info: "https://martinfowler.com/bliki/FrequencyReducesDifficulty.html",
       votes: 0,
-      id: 1
+      id: 1,
     },
     {
-      content: 'Premature optimization is the root of all evil',
-      author: 'Donald Knuth',
-      info: 'http://wiki.c2.com/?PrematureOptimization',
+      content: "Premature optimization is the root of all evil",
+      author: "Donald Knuth",
+      info: "http://wiki.c2.com/?PrematureOptimization",
       votes: 0,
-      id: 2
-    }
-  ])
+      id: 2,
+    },
+  ]);
 
-  const [notification, setNotification] = useState('')
+  const [notification, setNotification] = useState("");
+
+  const [notes, noteService] = useResource("http://localhost:3005/notes");
+  const [persons, personService] = useResource("http://localhost:3005/persons");
 
   const addNew = (anecdote) => {
-    anecdote.id = Math.round(Math.random() * 10000)
-    setAnecdotes(anecdotes.concat(anecdote))
+    anecdote.id = Math.round(Math.random() * 10000);
+    setAnecdotes(anecdotes.concat(anecdote));
 
-    setNotification(`a new anecdote "${anecdote.content}" created!`)
-    setTimeout(() => setNotification(''), 5000)
-  }
+    setNotification(`a new anecdote "${anecdote.content}" created!`);
+    setTimeout(() => setNotification(""), 5000);
+  };
+
+  const handleNoteSubmit = (e) => {
+    e.preventDefault();
+    noteService.create({ content: "New note" });
+  };
+
+  const handlePersonSubmit = (e) => {
+    e.preventDefault();
+    personService.create({ name: "John Doe", number: "123456" });
+  };
 
   return (
     <Router>
@@ -135,7 +118,7 @@ const App = () => {
       <Menu />
 
       {notification && (
-        <div style={{ border: '1px solid', padding: 10, marginBottom: 10 }}>
+        <div style={{ border: "1px solid", padding: 10, marginBottom: 10 }}>
           {notification}
         </div>
       )}
@@ -144,12 +127,34 @@ const App = () => {
         <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
         <Route path="/about" element={<About />} />
         <Route path="/create" element={<CreateNew addNew={addNew} />} />
-        <Route path="/anecdotes/:id" element={<Anecdote anecdotes={anecdotes} />} />
+        <Route
+          path="/anecdotes/:id"
+          element={<Anecdote anecdotes={anecdotes} />}
+        />
       </Routes>
 
+      <h2>Notes</h2>
+      <form onSubmit={handleNoteSubmit}>
+        <button type="submit">create note</button>
+      </form>
+      {notes.map((n) => (
+        <p key={n.id}>{n.content}</p>
+      ))}
+
+      <h2>Persons</h2>
+      <form onSubmit={handlePersonSubmit}>
+        <button type="submit">create person</button>
+      </form>
+      {persons.map((p) => (
+        <p key={p.id}>
+          {p.name} {p.number}
+        </p>
+      ))}
+
+      <CountryInfo />
       <Footer />
     </Router>
-  )
-}
+  );
+};
 
-export default App
+export default App;
