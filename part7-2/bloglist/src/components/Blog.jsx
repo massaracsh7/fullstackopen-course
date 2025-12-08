@@ -2,6 +2,9 @@ import { useState } from 'react'
 
 const Blog = ({ blog, onLike, onRemove, currentUser }) => {
   const [visible, setVisible] = useState(false)
+  const dispatch = useDispatch()
+const handleLike = () => dispatch(likeBlog(blog.id))
+const handleDelete = () => dispatch(deleteBlog(blog.id))
 
   const blogStyle = {
     paddingTop: 10,
