@@ -5,6 +5,14 @@ import axios from 'axios';
 const Blog = () => {
   const { id } = useParams();
   const [blog, setBlog] = useState(null);
+  const [comment, setComment] = useState('');
+  const handleComment = (e) => {
+    e.preventDefault();
+    axios.post(`/api/blogs/${blog.id}/comments`, { comment }).then((res) => {
+      setBlog(res.data);
+      setComment('');
+    });
+  };
   useEffect(() => {
     axios.get(`/api/blogs/${id}`).then((res) => setBlog(res.data));
   }, [id]);
@@ -20,6 +28,10 @@ const Blog = () => {
           <li key={i}>{c}</li>
         ))}
       </ul>
+      <form onSubmit={handleComment}>
+        <input value={comment} onChange={(e) => setComment(e.target.value)} />
+        <button type="submit">Add comment</button>
+      </form>
     </div>
   );
 };
