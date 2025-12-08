@@ -1,47 +1,19 @@
-import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 
-const Blog = ({ blog, onLike, onRemove, currentUser }) => {
-  const [visible, setVisible] = useState(false)
-  const dispatch = useDispatch()
-const handleLike = () => dispatch(likeBlog(blog.id))
-const handleDelete = () => dispatch(deleteBlog(blog.id))
-
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid 1px',
-    marginBottom: 5
-  }
-
-  const toggleVisibility = () => setVisible(!visible)
-
-  const showRemoveButton = currentUser?.username === blog.user?.username
-
+const Blog = () => {
+  const { id } = useParams()
+  const [blog, setBlog] = useState(null)
+  useEffect(() => { axios.get(`/api/blogs/${id}`).then(res => setBlog(res.data)) }, [id])
+  if (!blog) return null
   return (
-    <div style={blogStyle} className="blog">
-      <div>
-        {blog.title} {blog.author}
-        <button onClick={toggleVisibility}>{visible ? 'hide' : 'view'}</button>
-      </div>
-
-      {visible && (
-        <div>
-          <div>{blog.url}</div>
-          <div>
-            likes {blog.likes}
-            <button onClick={onLike}>like</button>
-          </div>
-          <div>{blog.user?.name}</div>
-
-          {showRemoveButton && (
-            <button onClick={onRemove} style={{ color: 'white', background: 'red' }}>
-              remove
-            </button>
-          )}
-        </div>
-      )}
+    <div>
+      <h2>{blog.title}</h2>
+      <p>{blog.author}</p>
+      <p>{blog.url}</p>
+      <p>Likes: {blog.likes}</p>
     </div>
   )
 }
-
 export default Blog
